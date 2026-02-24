@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,13 +24,6 @@ func TestClient_GetAddress(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, addr)
 	assert.Equal(t, list.Items[0].Hash, addr.Hash)
-}
-
-func TestClient_GetAddress2(t *testing.T) {
-	addr, err := api.GetAddress(context.Background(), "0xcA11bde05977b3631167028862bE2a173976CA11")
-	assert.NoError(t, err)
-	assert.NotNil(t, addr)
-	spew.Dump(addr)
 }
 
 func TestClient_ListAddressTransactions(t *testing.T) {
