@@ -1,6 +1,9 @@
 package blockscout
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+)
 
 // ── RESPONSE TYPES ──
 
@@ -29,9 +32,41 @@ type NetworkStats struct {
 
 // GasPrices represents gas price recommendations.
 type GasPrices struct {
-	Slow    *float64 `json:"slow"`
-	Average *float64 `json:"average"`
-	Fast    *float64 `json:"fast"`
+	Slow    *GasPriceDetail `json:"slow"`
+	Average *GasPriceDetail `json:"average"`
+	Fast    *GasPriceDetail `json:"fast"`
+}
+
+// GasPriceDetail represents gas price information.
+// Blockscout returns either a plain number or a detailed object depending on chain config.
+// When a plain number is returned, it is stored in the Price field.
+type GasPriceDetail struct {
+	Time           float64 `json:"time"`
+	Wei            string  `json:"wei"`
+	BaseFee        float64 `json:"base_fee"`
+	FiatPrice      *string `json:"fiat_price"`
+	Price          float64 `json:"price"`
+	PriorityFee    float64 `json:"priority_fee"`
+	PriorityFeeWei string  `json:"priority_fee_wei"`
+}
+
+// UnmarshalJSON handles both plain number and detailed object formats.
+func (g *GasPriceDetail) UnmarshalJSON(data []byte) error {
+	// Try plain number first (e.g. "slow": 0.44)
+	var num float64
+	if err := json.Unmarshal(data, &num); err == nil {
+		g.Price = num
+		return nil
+	}
+
+	// Otherwise parse as detailed object
+	type Alias GasPriceDetail
+	var alias Alias
+	if err := json.Unmarshal(data, &alias); err != nil {
+		return err
+	}
+	*g = GasPriceDetail(alias)
+	return nil
 }
 
 // TransactionsChart represents daily transaction count chart data.
